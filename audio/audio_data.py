@@ -44,3 +44,7 @@ train_size = int(0.8 * len(audio_dataset))
 valid_size = len(audio_dataset) - train_size
 
 train_dataset, valid_dataset = random_split(audio_dataset, [train_size, valid_size])
+
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=False)
+
