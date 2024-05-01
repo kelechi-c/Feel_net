@@ -1,5 +1,7 @@
 def model_config():
     return {
-        'batch_size': 32,
-        'lr': 0.001,
+        'batch_size': 64,
+        'lr': 0.01,
+        'epochs': 30,
+        'sample_rate': 22050
     }
