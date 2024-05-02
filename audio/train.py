@@ -40,3 +40,6 @@ def training_loop(model, train_loader, loss_fn, optimizer, device, epochs=config
         print(f"Training of epoch {epoch+1} complete ✅")
         print('____________________')
     print("Training Complete ✅✅✅")
+
+
+training_loop(audio_classifier, train_loader, loss_fn, optimizer, device)
