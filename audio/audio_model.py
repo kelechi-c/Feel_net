@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn 
 import torch.optim as optim
-import torch.nn.functional as F
 import torchvision
 import torchaudio
 from torchsummary import summary
@@ -53,5 +52,6 @@ class AudioModel(nn.Module):
     
 
 audio_classifier = AudioModel()
-summary(audio_classifier, (1, 28, 28))
-        
+model_summary = summary(audio_classifier, (1, 28, 28))
+
+print(model_summary)

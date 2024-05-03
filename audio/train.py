@@ -11,11 +11,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 config = model_config()
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(audio_classifier.parameters(), lr=config['lr'])
-
 def training_step(model, train_loader, loss_fn, optimizer, device):
     acc_list = []
 
     for waveform, label in tqdm(train_loader):
+        if waveform is None or label is None:
+            continue
+        
         waveform = waveform.to(device)
         label = label.to(device)
 

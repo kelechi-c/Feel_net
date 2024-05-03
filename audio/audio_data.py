@@ -58,6 +58,7 @@ class EmotionDataset(Dataset):
         label = self.labels[idx]
 
         waveform, sample_rate = torchaudio.load(audio_path)
+        
         waveform = waveform.to(self.device)
         waveform = self._resample(waveform, sample_rate)
         waveform = self._mix_down(waveform)
