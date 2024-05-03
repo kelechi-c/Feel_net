@@ -6,30 +6,51 @@ import torchvision
 import torchaudio
 from torch.utils.data import DataLoader, Dataset, random_split
 import os
+import matplotlib.pyplot as plt
+import librosa
 from config import model_config
+from sklearn.preprocessing import LabelEncoder
 
+
+folder_dir = "/kaggle/input/"
 dataset_folder = "/kaggle/input/audio-emotions/Emotions"
 data_config = model_config()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+labels = []
+file_paths = []
+
+for label_dir in os.listdir(dataset_folder):
+    label_path = os.path.join(dataset_folder, label_dir)
+    if os.path.isdir(label_path):
+        for file_name in os.listdir(label_path):
+            file_path = os.path.join(label_path, file_name)
+            file_paths.append(file_path)
+            labels.append(label_dir)
+
+
+def visualize_waveform(audio_file):
+    # audio_data, sample_rate = librosa.load(sample_path)
+    waveform, sample_rate = torchaudio.load(audio_file)
+    waveform = waveform.numpy()
+
+    # Display the waveform
+    plt.figure(figsize=(10, 4))
+    librosa.display.waveshow(waveform, sr=sample_rate)
+    plt.title('Audio Waveform')
+    plt.xlabel('Time')
+    plt.ylabel('Amplitude')
+    plt.tight_layout()
+    plt.show()
+
 class EmotionDataset(Dataset):
-    def __init__(self, folder_path, transform, device, target_sample_rate, num_samples):
-        self.folder_path = folder_path
-        self.device = device
-        self.transform = transform.to(device)
+    def __init__(self, file_paths, labels, transform, target_sample_rate, num_samples):
+        self.transform = transform
         self.target_sample_rate = target_sample_rate
         self.num_samples = num_samples
-        self.file_paths = []
-        self.labels = []
-
-        for label_dir in os.listdir(folder_path):
-            label_path = os.path.join(folder_path, label_dir)
-            if os.path.isdir(label_path):
-                for file_name in os.listdir(label_path):
-                    file_path = os.path.join(label_path, file_name)
-                    self.file_paths.append(file_path)
-                    self.labels.append(label_dir)
-
+        self.file_paths = file_paths
+        self.labels = labels
+        
     def __len__(self):
         return len(self.file_paths)
     
@@ -53,27 +74,28 @@ class EmotionDataset(Dataset):
             num_padding = self.num_samples - signal_length
             waveform = torch.nn.functional.pad(waveform, (0, num_padding))
         
+        return waveform
+    
     def __getitem__(self, idx):
         audio_path = self.file_paths[idx]
         label = self.labels[idx]
 
         waveform, sample_rate = torchaudio.load(audio_path)
         
-        waveform = waveform.to(self.device)
         waveform = self._resample(waveform, sample_rate)
         waveform = self._mix_down(waveform)
         waveform = self.cut(waveform)
         waveform = self._right_pad(waveform)
         waveform = self.transform(waveform)
 
-        return waveform, float(label)
+        return waveform, label
 
 
 melspectogram = torchaudio.transforms.MelSpectrogram(
     sample_rate=data_config['sample_rate'], n_fft=1024, hop_length=512, n_mels=64
 )
 
-audio_dataset = EmotionDataset(dataset_folder, melspectogram, device, data_config['sample_rate'], data_config['num_samples'])
+audio_dataset = EmotionDataset(file_paths, labels, melspectogram, data_config['sample_rate'], data_config['num_samples'])
 
 train_size = int(0.8 * len(audio_dataset))
 valid_size = len(audio_dataset) - train_size
