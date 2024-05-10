@@ -15,15 +15,15 @@ def training_step(model, train_loader, loss_fn, optimizer, device):
     acc_list = []
 
     for waveform, label in tqdm(train_loader):
-        if waveform is None or label is None:
-            continue
         
-        waveform = waveform.to(device)
-        label = label.to(device)
+        model.train()
+
+        waveform = waveform.cuda()
+        label = label.view(-1)
+        label = label.cuda()
 
         logits = model(waveform)
-        loss = loss_fn(logits.float(), label.float().view(-1,1))
-
+        loss = loss_fn(logits, label)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
