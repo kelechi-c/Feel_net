@@ -1,7 +1,6 @@
-import tensorflow as tf
+import pandas as pd
 from tensorflow import keras as tfkeras
 from keras import layers
-from keras.preprocessing.sequence import pad_sequences
 from tensorflow import keras as tfkeras
 from keras import layers
 from config import Config
