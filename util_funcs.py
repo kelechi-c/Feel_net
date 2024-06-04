@@ -1,14 +1,11 @@
 import librosa
-import torchaudio
 import cv2
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from config import Configs, audio_config
-
-audio_folder = ''
+from tqdm.auto import tqdm
+from config import audio_config
 
 
 # Audio
@@ -21,22 +18,15 @@ def plot_specgram(waveform, sample_rate, title="Spectrogram"):
     figure.tight_layout()
 
 
-def get_mel_spectrogram(audio_file):
-    waveform, sample_rate = torchaudio.load(audio_file)
-    spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate)(waveform)
-
-    return spectrogram
-
-
 def show_waveform(audio_file):
-    waveform, sr = librosa.loadO(audio_file)
-    librosa.display.waveshow(waveform, sr)
+    waveform, sr = librosa.load(audio_file)
+    librosa.display.waveshow(waveform, sr=sr)
     plt.title("Waveplot with Time Stretching", size=15)
     plt.show()
 
 
 def get_audio_files_and_labels(dir):
-    for folder, filenames in os.walk(dir):
+    for folder,_, filenames in os.walk(dir):
         for file in filenames:
             file_path = os.path.join(folder, file)
 
@@ -46,37 +36,46 @@ def get_audio_files_and_labels(dir):
 
 
 def extract_audio_features(audio):
-    audio_waveform, sr = librosa.load(audio, sr=audio_config.sample_rate)
-    
-    audio_mfcc = librosa.feature.melspectrogram(audio_waveform, sr, n_mfcc=50)
-    processed_mfcc = np.mean(audio_mfcc.T, axis=0)
-    
+    audio_waveform, sr = librosa.load(
+        audio, sr=audio_config.sample_rate, duration=3, offset=0.5
+    )
+
+    audio_mel = librosa.feature.mfcc(y=audio_waveform, sr=sr, n_mfcc=50)
+    processed_mfcc = np.mean(audio_mel.T, axis=0)
+
     features = np.array(processed_mfcc)
-    
     return features
 
-def audio_featre_csv(audio_files, labels):
-    audio_features = []
-    emotions = []
+
+def audio_file_csv(audio_files, labels):
+
+    data_for_df = {
+        "audio": audio_files,
+        "emotion_labels": labels
+    }
+
+    feature_df = pd.DataFrame(data_for_df)
+    feature_df.to_csv(audio_config.audio_feature_csv, index=False)
+
+    print('Audio features csv creation complete')
+
+    return feature_df
+
+
+def load_audio_features(csv):
+    df = pd.read_csv(csv)
+
+    audio_feats = df["audio"]
+    labels = df["emotion_labels"]
     
-    for audio, label in zip(audio_files, labels):
-       audio_feature = extract_audio_features(audio)
-       emotion = label.lower()
-       
-       audio_features.append(audio_feature)
-       emotions.append(emotion)
-       
-    return audio_features, emotions
-
-
-# def cv_read_spectrogram(melspec):
+    return audio_feats, labels
 
 
 # Images
 
 def cv_readimg(image_file):
     image = cv2.imread(image_file)
-    image = cv2.COLOR_BGR2RGB(image)
+    # image = cv2.cvtColor(image, )
     image = cv2.resize(image, (200, 200))
     image = np.array(image, dtype=np.float32) / 255.0  # Normalize the image
 
