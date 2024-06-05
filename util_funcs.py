@@ -67,8 +67,29 @@ def load_audio_features(csv):
 
     audio_feats = df["audio"]
     labels = df["emotion_labels"]
-    
+
     return audio_feats, labels
+
+
+# Accuracy plot for keras
+def accuracy_plot(epochs, accuracy, val_accuracy):
+    plt.plot(epochs, accuracy, label="Train Accuracy")
+    plt.plot(epochs, val_accuracy, label="Val Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy Score")
+    plt.legend()
+    plt.show()
+
+
+def loss_plot(epochs, loss, val_loss):
+    plt.plot(epochs, loss, label="Loss")
+    plt.plot(epochs, val_loss, label="Val Loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Loss value")
+    plt.legend()
+    plt.show()
 
 
 # Images

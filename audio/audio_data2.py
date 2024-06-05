@@ -37,3 +37,5 @@ y_labels = encoder.fit_transform(audio_df[["emotion_labels"]])
 y_labels = np.array(y_labels)
 
 x_audio_train, x_audio_test, y_labels_train, y_labels_test = train_test_split(x_audio, y_labels, test_size=0.15, random_state=123)
+
+input_shape = (x_audio_train.shape[1], x_audio_train.shape[2])
